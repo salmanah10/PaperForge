@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaperForge – Build exam papers from your own slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F7F9; --sheet:#FFFFFF; --ink:#13233F; --ink-soft:#4A5870;
+  --line:#D9DEE7; --pen:#D8382B; --pen-soft:#FBE9E7; --easy:#2E7D5B; --hard:#13233F;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1727; --sheet:#16233A; --ink:#EEF2F8; --ink-soft:#A3B0C4;
+    --line:#2A3A57; --pen:#FF6B5C; --pen-soft:#3A2224; --easy:#58C79A; --hard:#EEF2F8;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--pen);outline-offset:3px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* nav */
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.logo{font-family:'Source Serif 4',serif;font-weight:700;font-size:1.5rem;text-decoration:none;letter-spacing:-.01em}
+.logo span{color:var(--pen)}
+.nav-links{display:flex;gap:28px;align-items:center;font-weight:500;font-size:.95rem}
+.nav-links a{text-decoration:none;color:var(--ink-soft)}
+.nav-links a:hover{color:var(--ink)}
+.btn{display:inline-block;padding:12px 22px;border-radius:6px;font-weight:700;text-decoration:none;font-size:.95rem;border:2px solid var(--ink);transition:transform .15s}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn:hover{transform:translateY(-2px)}
+.nav-links .btn{color:var(--paper)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;align-items:center;padding:56px 0 96px}
+h1{font-family:'Source Serif 4',serif;font-size:clamp(2.4rem,5vw,4rem);line-height:1.08;letter-spacing:-.02em;font-weight:700}
+.lede{margin:22px 0 32px;font-size:1.15rem;color:var(--ink-soft);max-width:34em}
+.cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero small{display:block;margin-top:18px;color:var(--ink-soft);font-size:.88rem}
+
+/* the paper */
+.stage{position:relative}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:4px;padding:30px 32px 26px;box-shadow:0 18px 40px -18px rgba(19,35,63,.35);transform:rotate(1.2deg);font-family:'Source Serif 4',serif}
+.sheet header{text-align:center;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:14px}
+.sheet h3{font-size:1.1rem;font-weight:700}
+.sheet .meta{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-soft);margin-top:6px;font-family:'Manrope',sans-serif}
+.sec{font-weight:600;font-size:.92rem;margin:14px 0 6px;display:flex;justify-content:space-between}
+.q{font-size:.9rem;margin:5px 0;padding-left:1.4em;position:relative}
+.q::before{content:attr(data-n);position:absolute;left:0;color:var(--ink-soft)}
+.opts{display:flex;gap:14px;font-size:.8rem;color:var(--ink-soft);padding-left:1.4em;margin-bottom:4px;flex-wrap:wrap}
+.tag{font-family:'Manrope',sans-serif;font-size:.7rem;font-weight:700;padding:1px 8px;border-radius:99px;margin-left:6px;vertical-align:middle}
+.tag.e{background:#DDF1E8;color:#1F5C42}.tag.m{background:#FFF1CC;color:#7A5A00}.tag.h{background:var(--ink);color:var(--paper)}
+.mark{position:absolute;right:-14px;top:-16px;transform:rotate(8deg);border:3px solid var(--pen);color:var(--pen);font-family:'Manrope',sans-serif;font-weight:800;font-size:.85rem;padding:6px 12px;border-radius:6px;background:var(--paper)}
+
+/* blueprint control */
+.blueprint{position:relative;z-index:2;margin:-34px 0 0 -26px;width:min(310px,88%);background:var(--ink);color:var(--paper);border-radius:8px;padding:18px 20px;font-size:.85rem;box-shadow:0 14px 30px -12px rgba(0,0,0,.5)}
+.blueprint h4{font-size:.95rem;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0}
+.row label{flex:0 0 74px}
+.row input[type=range]{flex:1;accent-color:var(--pen)}
+.row output{flex:0 0 34px;text-align:right;font-weight:700}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:12px;background:#fff3}
+.bar i{display:block;transition:width .25s}
+#bE{background:#58C79A}#bM{background:#F2C14E}#bH{background:#FF6B5C}
+.blueprint p{margin-top:8px;font-size:.78rem;opacity:.85}
+
+/* sections */
+section{padding:84px 0;border-top:1px solid var(--line)}
+h2{font-family:'Source Serif 4',serif;font-size:clamp(1.8rem,3.4vw,2.5rem);line-height:1.15;letter-spacing:-.01em;max-width:18em}
+.sub{margin-top:12px;color:var(--ink-soft);max-width:36em}
+.steps{margin-top:48px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;counter-reset:s;list-style:none}
+.steps li{counter-increment:s;padding:0 24px 0 0;border-top:3px solid var(--ink);padding-top:18px;position:relative}
+.steps li::before{content:counter(s);font-family:'Source Serif 4',serif;font-size:2.2rem;font-weight:700;color:var(--pen);display:block;line-height:1}
+.steps h3{margin:10px 0 6px;font-size:1.05rem}
+.steps p{color:var(--ink-soft);font-size:.93rem}
+
+.feat{margin-top:44px;display:grid;grid-template-columns:repeat(3,1fr);gap:40px 36px}
+.feat h3{font-size:1.02rem;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.feat p{color:var(--ink-soft);font-size:.93rem}
+
+.types{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px}
+.types span{border:1.5px solid var(--ink);border-radius:99px;padding:6px 16px;font-weight:600;font-size:.9rem}
+
+.final{background:var(--ink);color:var(--paper);border-radius:12px;padding:64px 48px;text-align:center;margin-bottom:72px}
+.final h2{margin:0 auto;color:var(--paper)}
+.final p{margin:14px auto 28px;max-width:30em;opacity:.8}
+.final .btn{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+:root:not([data-theme="light"]) .final{background:var(--sheet)}
+footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:44px;padding-bottom:64px}
+  .steps{grid-template-columns:1fr 1fr;gap:32px 0}
+  .feat{grid-template-columns:1fr 1fr}
+  .nav-links a:not(.btn){display:none}
+}
+@media (max-width:560px){
+  .steps,.feat{grid-template-columns:1fr}
+  .sheet{transform:none}
+  .blueprint{margin-left:0;width:100%}
+  .final{padding:44px 22px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* sign up */
+.signup{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;background:var(--ink);color:var(--paper);border-radius:12px;padding:56px 48px;margin:0 0 72px;scroll-margin-top:20px}
+:root:not([data-theme="light"]) .signup{background:var(--sheet)}
+.signup h2{color:var(--paper)}
+@media (prefers-color-scheme: dark){.signup h2{color:var(--ink)}}
+.signup p.s{margin-top:14px;opacity:.85;max-width:26em}
+.signup ul{margin:18px 0 0 18px;opacity:.9;font-size:.95rem}
+.form{background:var(--sheet);color:var(--ink);border-radius:8px;padding:26px}
+.form label{display:block;font-weight:700;font-size:.85rem;margin:12px 0 4px}
+.form input,.form select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:6px;font:inherit;background:var(--paper);color:var(--ink)}
+.form input:focus,.form select:focus{border-color:var(--ink);outline:2px solid var(--pen);outline-offset:1px}
+.form .btn{width:100%;margin-top:20px;background:var(--pen);border-color:var(--pen);color:#fff;cursor:pointer;font-family:inherit}
+.form .alt{margin-top:14px;font-size:.88rem;color:var(--ink-soft);text-align:center}
+.form .alt a{font-weight:700;color:var(--ink)}
+.login-link{text-decoration:none;font-weight:700;color:var(--ink)}
+@media (max-width:900px){.signup{grid-template-columns:1fr;padding:40px 24px}}
+
+/* tabs */
+.tabs{display:flex;border-bottom:2px solid var(--line);margin:-6px 0 8px}
+.tabs button{flex:1;padding:12px 0;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;font:inherit;font-weight:700;color:var(--ink-soft);cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--pen)}
+.form .check{display:flex;align-items:center;gap:8px;font-weight:500;margin:14px 0 0}
+.form .check input{width:auto}
+.form .forgot{display:block;margin-top:10px;font-size:.85rem;color:var(--ink-soft);text-align:right}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="#">Paper<span>Forge</span></a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#signin" class="login-link" data-tab="signin">Sign in</a>
+      <a href="#signup" class="btn btn-primary" data-tab="signup">Sign up</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Turn your slides into a ready-to-print exam paper.</h1>
+        <p class="lede">Upload your slides and syllabus, choose how many MCQs, short questions, theory questions and numericals you need, set the difficulty, and PaperForge writes the paper from your own material.</p>
+        <div class="cta">
+          <a href="#signup" class="btn btn-primary" data-tab="signup">Sign up free</a>
+          <a href="#how" class="btn btn-ghost">See how it works</a>
+        </div>
+        <small>Already have an account? <a href="#signin" data-tab="signin"><strong>Sign in</strong></a></small>
+      </div>
+
+      <div class="stage" aria-label="Example of a generated paper">
+        <div class="sheet">
+          <span class="mark">Reviewed</span>
+          <header>
+            <h3>Data Structures – Midterm Exam</h3>
+            <div class="meta"><span>Time: 1 hr 30 min</span><span>Total marks: 40</span></div>
+          </header>
+          <div class="sec"><span>Section A – MCQs</span><span id="cMcq">10 × 1</span></div>
+          <p class="q" data-n="1.">Which data structure follows the LIFO principle? <span class="tag e">Easy</span></p>
+          <div class="opts"><span>(a) Queue</span><span>(b) Stack</span><span>(c) Tree</span><span>(d) Graph</span></div>
+          <div class="sec"><span>Section B – Short questions</span><span id="cShort">5 × 2</span></div>
+          <p class="q" data-n="2.">Differentiate between an array and a linked list. <span class="tag m">Medium</span></p>
+          <div class="sec"><span>Section C – Numericals</span><span id="cNum">2 × 5</span></div>
+          <p class="q" data-n="3.">Trace insertion of 8, 3, 10, 1 into a BST and give the in-order output. <span class="tag h">Hard</span></p>
+          <div class="sec"><span>Section D – Theory</span><span id="cTh">2 × 5</span></div>
+          <p class="q" data-n="4.">Explain merge sort with its time complexity. <span class="tag m">Medium</span></p>
+        </div>
+
+        <form class="blueprint" onsubmit="return false" aria-label="Paper blueprint">
+          <h4>Paper blueprint</h4>
+          <div class="row"><label for="rE">Easy</label><input type="range" id="rE" min="0" max="100" value="30"><output id="oE">30%</output></div>
+          <div class="row"><label for="rM">Medium</label><input type="range" id="rM" min="0" max="100" value="50"><output id="oM">50%</output></div>
+          <div class="row"><label for="rH">Hard</label><input type="range" id="rH" min="0" max="100" value="20"><output id="oH">20%</output></div>
+          <div class="bar" aria-hidden="true"><i id="bE" style="width:30%"></i><i id="bM" style="width:50%"></i><i id="bH" style="width:20%"></i></div>
+          <p id="note">Questions are balanced to 100%.</p>
+        </form>
+      </div>
+    </div>
+
+    <section id="how">
+      <h2>From files to a finished paper in four steps</h2>
+      <p class="sub">The teacher stays in control. AI drafts, you review and edit.</p>
+      <ol class="steps">
+        <li><h3>Upload your material</h3><p>Add slides, notes and your syllabus. Pick the topics the paper should cover.</p></li>
+        <li><h3>Fill the blueprint</h3><p>Set total marks, question counts per type, and the share of easy, medium and hard questions.</p></li>
+        <li><h3>Generate and review</h3><p>Questions come from your files only. Edit any question or regenerate just that one.</p></li>
+        <li><h3>Export</h3><p>Download a formatted PDF or Word file, with an optional answer key.</p></li>
+      </ol>
+    </section>
+
+    <section id="features">
+      <h2>Everything a paper setter needs</h2>
+      <div class="types">
+        <span>MCQs</span><span>Short questions</span><span>Long / theory</span><span>Numericals</span><span>True / False</span><span>Fill in the blanks</span>
+      </div>
+      <div class="feat">
+        <div><h3>Based on your slides</h3><p>Questions are drawn from the content you upload, so the paper matches what you actually taught.</p></div>
+        <div><h3>Difficulty control</h3><p>Choose the easy, medium and hard split. Each question is tagged so you can check the balance.</p></div>
+        <div><h3>Topic weightage</h3><p>Give more marks to important chapters and leave out topics you did not cover.</p></div>
+        <div><h3>Answer key and solutions</h3><p>Get model answers, marking schemes and step-by-step solutions for numericals.</p></div>
+        <div><h3>Question bank</h3><p>Save good questions and reuse them, and avoid repeating the same question across papers.</p></div>
+        <div><h3>Multiple sets</h3><p>Create Set A and Set B with shuffled questions to reduce copying.</p></div>
+      </div>
+    </section>
+
+    <div class="signup" id="signup">
+      <div>
+        <h2 id="authTitle">Create your teacher account</h2>
+        <p class="s" id="authText">Upload one chapter and generate your first paper in a few minutes.</p>
+        <ul><li>Free to start</li><li>No credit card needed</li><li>Your files stay private to your account</li></ul>
+      </div>
+      <div class="form">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" id="tab-signup" aria-selected="true" aria-controls="panel-signup" data-tab="signup">Sign up</button>
+          <button type="button" role="tab" id="tab-signin" aria-selected="false" aria-controls="panel-signin" data-tab="signin">Sign in</button>
+        </div>
+
+        <form id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" method="post" action="">
+          {% csrf_token %}
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" autocomplete="name" required>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+          <label for="inst">School / institute</label>
+          <input type="text" id="inst" name="institute" autocomplete="organization">
+          <label for="pw">Password</label>
+          <input type="password" id="pw" name="password" minlength="8" autocomplete="new-password" required>
+          <label for="pw2">Confirm password</label>
+          <input type="password" id="pw2" name="password2" minlength="8" autocomplete="new-password" required>
+          <button type="submit" class="btn">Create account</button>
+          <p class="alt">Already have an account? <a href="#signin" data-tab="signin">Sign in</a></p>
+        </form>
+
+        <form id="panel-signin" role="tabpanel" aria-labelledby="tab-signin" method="post" action="" hidden>
+          {% csrf_token %}
+          <label for="siUser">Email or username</label>
+          <input type="text" id="siUser" name="username" autocomplete="username" required>
+          <label for="siPw">Password</label>
+          <input type="password" id="siPw" name="password" autocomplete="current-password" required>
+          <label class="check"><input type="checkbox" name="remember"> Keep me signed in</label>
+          <a class="forgot" href="#">Forgot password?</a>
+          <button type="submit" class="btn">Sign in</button>
+          <p class="alt">New to PaperForge? <a href="#signup" data-tab="signup">Create an account</a></p>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span>© 2026 PaperForge</span>
+    <span>Built with Django</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var ids=['E','M','H'], r={}, o={}, b={};
+  ids.forEach(function(k){r[k]=document.getElementById('r'+k);o[k]=document.getElementById('o'+k);b[k]=document.getElementById('b'+k);});
+  var note=document.getElementById('note');
+  function update(changed){
+    var total=0;
+    ids.forEach(function(k){total+=+r[k].value;});
+    // keep the split at 100% by adjusting the other two proportionally
+    if(total!==100){
+      var others=ids.filter(function(k){return k!==changed;});
+      var rest=100-(+r[changed].value);
+      var sum=+r[others[0]].value + +r[others[1]].value;
+      var a=sum?Math.round(rest*(+r[others[0]].value)/sum):Math.round(rest/2);
+      r[others[0]].value=a; r[others[1]].value=rest-a;
+    }
+    ids.forEach(function(k){o[k].textContent=r[k].value+'%'; b[k].style.width=r[k].value+'%';});
+    var hard=+r.H.value;
+    note.textContent = hard>=40 ? 'Challenging paper: expect more analysis questions.' : (+r.E.value>=50 ? 'Gentle paper: mostly recall and definitions.' : 'Balanced paper: a mix of recall and application.');
+  }
+  ids.forEach(function(k){r[k].addEventListener('input',function(){update(k);});});
+})();
+</script>
+<script>
+(function(){
+  var copy={
+    signup:['Create your teacher account','Upload one chapter and generate your first paper in a few minutes.'],
+    signin:['Welcome back','Sign in to open your courses, question bank and saved papers.']
+  };
+  function show(t,scroll){
+    ['signup','signin'].forEach(function(k){
+      var on=k===t;
+      document.getElementById('panel-'+k).hidden=!on;
+      document.getElementById('tab-'+k).setAttribute('aria-selected',on);
+    });
+    document.getElementById('authTitle').textContent=copy[t][0];
+    document.getElementById('authText').textContent=copy[t][1];
+    if(scroll)document.getElementById('signup').scrollIntoView({behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-tab]').forEach(function(el){
+    el.addEventListener('click',function(e){
+      e.preventDefault();
+      show(el.getAttribute('data-tab'),!el.closest('.tabs'));
+    });
+  });
+  if(location.hash==='#signin')show('signin',false);
+})();
+</script>
+</body>
+</html>
