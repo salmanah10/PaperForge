@@ -9,13 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#F6F7F9; --sheet:#FFFFFF; --ink:#13233F; --ink-soft:#4A5870;
-  --line:#D9DEE7; --pen:#D8382B; --pen-soft:#FBE9E7; --easy:#2E7D5B; --hard:#13233F;
+  --paper:#FAF6F6; --sheet:#FFFFFF; --ink:#7A1414; --ink-soft:#6B4A4A;
+  --line:#E6D9D9; --pen:#E03A2F; --pen-soft:#FDE8E6; --easy:#2E7D5B; --hard:#7A1414;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#0E1727; --sheet:#16233A; --ink:#EEF2F8; --ink-soft:#A3B0C4;
-    --line:#2A3A57; --pen:#FF6B5C; --pen-soft:#3A2224; --easy:#58C79A; --hard:#EEF2F8;
+    --paper:#1A0E0E; --sheet:#261414; --ink:#F8EEEE; --ink-soft:#C9A8A8;
+    --line:#4A2626; --pen:#FF7B6B; --pen-soft:#4A2222; --easy:#58C79A; --hard:#F8EEEE;
   }
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -47,7 +47,7 @@ h1{font-family:'Source Serif 4',serif;font-size:clamp(2.4rem,5vw,4rem);line-heig
 
 /* the paper */
 .stage{position:relative}
-.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:4px;padding:30px 32px 26px;box-shadow:0 18px 40px -18px rgba(19,35,63,.35);transform:rotate(1.2deg);font-family:'Source Serif 4',serif}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:4px;padding:30px 32px 26px;box-shadow:0 18px 40px -18px rgba(122,20,20,.35);transform:rotate(1.2deg);font-family:'Source Serif 4',serif}
 .sheet header{text-align:center;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:14px}
 .sheet h3{font-size:1.1rem;font-weight:700}
 .sheet .meta{display:flex;justify-content:space-between;font-size:.82rem;color:var(--ink-soft);margin-top:6px;font-family:'Manrope',sans-serif}
@@ -68,7 +68,7 @@ h1{font-family:'Source Serif 4',serif;font-size:clamp(2.4rem,5vw,4rem);line-heig
 .row output{flex:0 0 34px;text-align:right;font-weight:700}
 .bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:12px;background:#fff3}
 .bar i{display:block;transition:width .25s}
-#bE{background:#58C79A}#bM{background:#F2C14E}#bH{background:#FF6B5C}
+#bE{background:#58C79A}#bM{background:#F2C14E}#bH{background:#FF7B6B}
 .blueprint p{margin-top:8px;font-size:.78rem;opacity:.85}
 
 /* sections */
@@ -111,9 +111,9 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
 
 /* sign up */
 .signup{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;background:var(--ink);color:var(--paper);border-radius:12px;padding:56px 48px;margin:0 0 72px;scroll-margin-top:20px}
-:root:not([data-theme="light"]) .signup{background:var(--sheet)}
+.signup{color:var(--paper)}
 .signup h2{color:var(--paper)}
-@media (prefers-color-scheme: dark){.signup h2{color:var(--ink)}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .signup{background:var(--sheet);color:var(--ink)}.signup h2{color:var(--ink)}}
 .signup p.s{margin-top:14px;opacity:.85;max-width:26em}
 .signup ul{margin:18px 0 0 18px;opacity:.9;font-size:.95rem}
 .form{background:var(--sheet);color:var(--ink);border-radius:8px;padding:26px}
@@ -134,6 +134,8 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
 .form .check input{width:auto}
 .form .forgot{display:block;margin-top:10px;font-size:.85rem;color:var(--ink-soft);text-align:right}
 [hidden]{display:none!important}
+#msgs{display:none}#msgs.has{display:block}
+.msg{background:var(--pen-soft);color:var(--pen);border:1px solid var(--pen);border-radius:6px;padding:10px 12px;font-size:.9rem;font-weight:600;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -222,14 +224,14 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
         <ul><li>Free to start</li><li>No credit card needed</li><li>Your files stay private to your account</li></ul>
       </div>
       <div class="form">
+        <div id="msgs"></div>
         <div class="tabs" role="tablist">
           <button type="button" role="tab" id="tab-signup" aria-selected="true" aria-controls="panel-signup" data-tab="signup">Sign up</button>
           <button type="button" role="tab" id="tab-signin" aria-selected="false" aria-controls="panel-signin" data-tab="signin">Sign in</button>
         </div>
 
-        <form id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" method="post" action="">
-          {% csrf_token %}
-          <label for="name">Full name</label>
+        <form id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" method="post" action="/register/">
+                    <label for="name">Full name</label>
           <input type="text" id="name" name="name" autocomplete="name" required>
           <label for="email">Email</label>
           <input type="email" id="email" name="email" autocomplete="email" required>
@@ -243,9 +245,8 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
           <p class="alt">Already have an account? <a href="#signin" data-tab="signin">Sign in</a></p>
         </form>
 
-        <form id="panel-signin" role="tabpanel" aria-labelledby="tab-signin" method="post" action="" hidden>
-          {% csrf_token %}
-          <label for="siUser">Email or username</label>
+        <form id="panel-signin" role="tabpanel" aria-labelledby="tab-signin" method="post" action="/login/" hidden>
+                    <label for="siUser">Email or username</label>
           <input type="text" id="siUser" name="username" autocomplete="username" required>
           <label for="siPw">Password</label>
           <input type="password" id="siPw" name="password" autocomplete="current-password" required>
@@ -309,10 +310,17 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
       show(el.getAttribute('data-tab'),!el.closest('.tabs'));
     });
   });
-  if(location.hash==='#signin')show('signin',false);
+  var q=new URLSearchParams(location.search);
+  var msgs=document.getElementById('msgs');
+  var err=q.get('err');
+  if(err&&msgs){var mp=document.createElement('p');mp.className='msg';mp.setAttribute('role','alert');mp.textContent=err;msgs.appendChild(mp);msgs.classList.add('has');}
+  // add the Django CSRF token (from cookie) to both forms
+  var cm=document.cookie.match('(?:^|; )csrftoken=([^;]*)');
+  if(cm){document.querySelectorAll('form').forEach(function(f){var i=document.createElement('input');i.type='hidden';i.name='csrfmiddlewaretoken';i.value=decodeURIComponent(cm[1]);f.appendChild(i);});}
+  var startTab=q.get('tab');
+  if(startTab==='signup'||startTab==='signin'){show(startTab,true);}
+  else if(location.hash==='#signin'){show('signin',false);}
 })();
 </script>
 </body>
 </html>
-
-

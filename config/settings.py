@@ -125,7 +125,8 @@ STATICFILES_DIRS = [BASE_DIR / 'static']    # <-- ADDED
 
 
 # Login / logout redirects                   # <-- ADDED
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_URL = 'home'
+LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 
 

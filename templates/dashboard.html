@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard – PaperForge</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#F6F7F9;color:#13233F;margin:0}
+  header{display:flex;justify-content:space-between;align-items:center;padding:18px 32px;background:#fff;border-bottom:1px solid #D9DEE7}
+  .logo{font-family:Georgia,serif;font-weight:700;font-size:1.4rem}
+  .logo span{color:#D8382B}
+  main{max-width:900px;margin:40px auto;padding:0 24px}
+  button{background:#13233F;color:#fff;border:0;padding:9px 18px;border-radius:6px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Paper<span>Forge</span></div>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Sign out</button>
+  </form>
+</header>
+<main>
+  <h1>Welcome, {{ user.first_name|default:user.username }}</h1>
+  <p>You are signed in as {{ user.email }}.</p>
+</main>
+</body>
+</html>
