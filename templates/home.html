@@ -136,6 +136,15 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
 [hidden]{display:none!important}
 #msgs{display:none}#msgs.has{display:block}
 .msg{background:var(--pen-soft);color:var(--pen);border:1px solid var(--pen);border-radius:6px;padding:10px 12px;font-size:.9rem;font-weight:600;margin-bottom:10px}
+.form ul.rules{list-style:none;margin:8px 0 0;padding:0;font-size:.82rem;opacity:1}
+.form ul.rules li{color:var(--ink-soft);padding:1px 0}
+.form ul.rules li::before{content:"\25CB  ";}
+.form ul.rules li.ok{color:var(--easy);font-weight:600}
+.form ul.rules li.ok::before{content:"\2713  ";}
+.form ul.rules li.bad{color:var(--pen);font-weight:600}
+.form ul.rules li.bad::before{content:"\2715  ";}
+.form .match{font-size:.82rem;font-weight:600;margin-top:6px;min-height:1em}
+.form .match.ok{color:var(--easy)}.form .match.bad{color:var(--pen)}
 </style>
 </head>
 <body>
@@ -231,6 +240,7 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
         </div>
 
         <form id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" method="post" action="/register/">
+          <span hidden>{% csrf_token %}</span>
                     <label for="name">Full name</label>
           <input type="text" id="name" name="name" autocomplete="name" required>
           <label for="email">Email</label>
@@ -239,13 +249,21 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
           <input type="text" id="inst" name="institute" autocomplete="organization">
           <label for="pw">Password</label>
           <input type="password" id="pw" name="password" minlength="8" autocomplete="new-password" required>
+          <ul class="rules" id="rules" aria-live="polite">
+            <li data-rule="len">At least 8 characters</li>
+            <li data-rule="num">Not only numbers</li>
+            <li data-rule="common">Not a common password (like 12345678 or password)</li>
+            <li data-rule="sim">Not similar to your email</li>
+          </ul>
           <label for="pw2">Confirm password</label>
           <input type="password" id="pw2" name="password2" minlength="8" autocomplete="new-password" required>
+          <p class="match" id="match" aria-live="polite"></p>
           <button type="submit" class="btn">Create account</button>
           <p class="alt">Already have an account? <a href="#signin" data-tab="signin">Sign in</a></p>
         </form>
 
         <form id="panel-signin" role="tabpanel" aria-labelledby="tab-signin" method="post" action="/login/" hidden>
+          <span hidden>{% csrf_token %}</span>
                     <label for="siUser">Email or username</label>
           <input type="text" id="siUser" name="username" autocomplete="username" required>
           <label for="siPw">Password</label>
@@ -314,12 +332,58 @@ footer{padding:0 0 40px;color:var(--ink-soft);font-size:.88rem;display:flex;just
   var msgs=document.getElementById('msgs');
   var err=q.get('err');
   if(err&&msgs){var mp=document.createElement('p');mp.className='msg';mp.setAttribute('role','alert');mp.textContent=err;msgs.appendChild(mp);msgs.classList.add('has');}
-  // add the Django CSRF token (from cookie) to both forms
-  var cm=document.cookie.match('(?:^|; )csrftoken=([^;]*)');
-  if(cm){document.querySelectorAll('form').forEach(function(f){var i=document.createElement('input');i.type='hidden';i.name='csrfmiddlewaretoken';i.value=decodeURIComponent(cm[1]);f.appendChild(i);});}
   var startTab=q.get('tab');
   if(startTab==='signup'||startTab==='signin'){show(startTab,true);}
   else if(location.hash==='#signin'){show('signin',false);}
+
+  // live password rules on the sign up form
+  (function(){
+    var pw=document.getElementById('pw'), em=document.getElementById('email'), list=document.getElementById('rules');
+    if(!pw||!list)return;
+    var common=['password','password1','password123','12345678','123456789','1234567890','11111111','00000000','qwerty123','qwertyuiop','iloveyou','abc12345','letmein123','admin123','welcome1','12341234','87654321'];
+    function results(){
+      var v=pw.value, low=v.toLowerCase(), mail=(em.value||'').toLowerCase(), local=mail.split('@')[0];
+      var similar=false;
+      if(v){ [local,mail].forEach(function(p){ if(p&&p.length>=4&&(low.indexOf(p)>-1||p.indexOf(low)>-1&&low.length>=4)) similar=true; }); }
+      return {len:v.length>=8, num:!/^\d+$/.test(v), common:common.indexOf(low)===-1, sim:!similar};
+    }
+    function paint(){
+      var r=results(), has=pw.value.length>0;
+      list.querySelectorAll('li').forEach(function(li){
+        var ok=r[li.getAttribute('data-rule')];
+        li.className=!has?'':(ok?'ok':'bad');
+      });
+    }
+    var pw2=document.getElementById('pw2'), match=document.getElementById('match'), msgsBox=document.getElementById('msgs');
+    function paintMatch(){
+      if(!pw2.value){match.textContent='';match.className='match';return true;}
+      var same=pw.value===pw2.value;
+      match.textContent=same?'\u2713 Passwords match':'\u2715 Passwords do not match';
+      match.className='match '+(same?'ok':'bad');
+      return same;
+    }
+    function showError(text){
+      msgsBox.innerHTML='';
+      var p=document.createElement('p');p.className='msg';p.setAttribute('role','alert');p.textContent=text;
+      msgsBox.appendChild(p);msgsBox.classList.add('has');
+      msgsBox.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+    pw.addEventListener('input',function(){paint();paintMatch();});
+    pw2.addEventListener('input',paintMatch);
+    em.addEventListener('input',paint);
+    document.getElementById('panel-signup').addEventListener('submit',function(e){
+      var r=results();
+      if(!(r.len&&r.num&&r.common&&r.sim)){
+        e.preventDefault();paint();pw.focus();
+        showError('Please choose a password that meets all the rules listed below the password box.');
+        return;
+      }
+      if(pw.value!==pw2.value){
+        e.preventDefault();paintMatch();pw2.focus();
+        showError('Passwords do not match. Please type the same password in both boxes.');
+      }
+    });
+  })();
 })();
 </script>
 </body>

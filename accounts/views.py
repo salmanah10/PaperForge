@@ -1,4 +1,4 @@
-from django.contrib import messages
+from urllib.parse import urlencode
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
